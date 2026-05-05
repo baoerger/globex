@@ -1,0 +1,35 @@
+[project]
+name = "globex-agent"
+version = "0.1.0"
+description = "Globex 跨境电商 Agent（AgentScope 版 MVP）：DDD 洋葱架构 + MainAgent/SearchAgent/TradeAgent"
+readme = "README.md"
+# AgentScope 2.x 要求 Python >= 3.11
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "agentscope>=2,<3",
+    "aiosqlite>=0.22.1",
+    "fastapi>=0.115",
+    "httpx>=0.28.1",
+    "python-dotenv>=1.2.2",
+    "pyyaml>=6.0.3",
+    "qdrant-client>=1.19.0",
+    "redis>=8.1.0",
+    "sqlalchemy[asyncio]>=2.0",
+    "uvicorn[standard]>=0.30",
+]
+
+# 声明为独立 workspace root，避免 uv 向上探测课程仓库根部的 pyproject
+[tool.uv.workspace]
+members = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "websockets>=16.1.1",
+]
