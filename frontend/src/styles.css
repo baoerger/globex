@@ -1,0 +1,289 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: #f6f7f9;
+  color: #1f2328;
+}
+
+.layout {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+header h1 {
+  margin: 0 0 6px;
+  font-size: 20px;
+}
+
+header .meta {
+  display: flex;
+  gap: 14px;
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+
+.dot::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+.dot.on::before {
+  background: #16a34a;
+}
+
+.dot.off::before {
+  background: #dc2626;
+}
+
+main {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 16px;
+  align-items: start;
+}
+
+.chat,
+.timeline {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.turns {
+  min-height: 220px;
+  max-height: 460px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.turn {
+  display: flex;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.turn .who {
+  flex: 0 0 52px;
+  color: #6b7280;
+  font-size: 12px;
+  padding-top: 2px;
+}
+
+.turn .text {
+  white-space: pre-wrap;
+  flex: 1;
+}
+
+.turn.buyer .text {
+  background: #eef2ff;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+
+.turn.streaming .text {
+  color: #374151;
+  border-left: 2px solid #2563eb;
+  padding-left: 8px;
+}
+
+.hint {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.composer {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.composer textarea {
+  flex: 1;
+  min-height: 62px;
+  resize: vertical;
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.composer button {
+  padding: 0 18px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.composer button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 13px;
+}
+
+.card header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 6px;
+}
+
+.card .brand {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.card .price {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.landed {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  padding: 6px 8px;
+  margin: 6px 0;
+}
+
+.landed-total {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.landed-detail {
+  color: #4b5563;
+  font-size: 12px;
+}
+
+.highlights {
+  margin: 6px 0;
+  padding-left: 16px;
+  color: #4b5563;
+}
+
+.skus {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.sku {
+  background: #f3f4f6;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 12px;
+  color: #4b5563;
+}
+
+.timeline h2 {
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+
+.timeline .empty {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.timeline ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 560px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ev {
+  border-left: 3px solid #d1d5db;
+  padding: 4px 0 4px 10px;
+  font-size: 12px;
+}
+
+.ev-head {
+  display: flex;
+  justify-content: space-between;
+  color: #6b7280;
+  margin-bottom: 2px;
+}
+
+.ev .tag {
+  font-weight: 600;
+  color: #374151;
+}
+
+.ev-body {
+  color: #4b5563;
+  word-break: break-all;
+}
+
+.ev.agent-dispatch {
+  border-left-color: #7c3aed;
+}
+
+.ev.tool-invoke {
+  border-left-color: #2563eb;
+}
+
+.ev.tool-result {
+  border-left-color: #0891b2;
+}
+
+.ev.plan-update {
+  border-left-color: #d97706;
+}
+
+.ev.context-compressed {
+  border-left-color: #16a34a;
+}
+
+.ev.model-fallback {
+  border-left-color: #ea580c;
+}
+
+.ev.final-result {
+  border-left-color: #111827;
+}
+
+.ev.error {
+  border-left-color: #dc2626;
+}
+
+@media (max-width: 960px) {
+  main {
+    grid-template-columns: 1fr;
+  }
+}
