@@ -15,7 +15,7 @@ from app.infrastructure.vector.index_bootstrap import bootstrap_product_index
 from app.infrastructure.vector.qdrant_product_index import QdrantProductIndex
 
 # 特征轴词表：文本命中即该维置 1，余弦相似度即可反映关键词重合度
-_FEATURE_TERMS = ("露营灯", "登山杖", "毛巾", "睡袋", "行李箱", "耳机", "充电器", "三件套", "背包", "茶具")
+_FEATURE_TERMS = ("露营灯", "抗造", "登山杖", "毛巾", "睡袋", "行李箱", "耳机", "充电器", "三件套", "背包", "茶具")
 
 
 class AxisEmbeddingClient(EmbeddingClient):
@@ -177,7 +177,7 @@ class TestTwoStageRecall:
             ),
         )
         try:
-            await tool(normalized_query="露营灯", ship_to="US", target_currency="USD")
+            await tool(normalized_query="露营灯 抗造", ship_to="US", target_currency="USD")
         finally:
             ShoppingContext.reset(token)
 
