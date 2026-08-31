@@ -1,0 +1,125 @@
+# Globex 全栈编排：app + Qdrant + Redis + React 前端
+#
+# 用法：
+#   cd globex-agent
+#   export LLM_BASE_URL=<网关地址> LLM_API_KEY=<密钥>   # 敏感配置走环境变量，不落盘
+#   docker compose -f docker/docker-compose.yaml up -d --build
+#   前端 http://localhost:5173，后端 http://localhost:8000
+#
+# 存储用 SQLite，落在 app-data 卷（零外部依赖，无需额外容器）。
+# 注意：compose 形态下 QDRANT_URL 指向 qdrant 服务（覆盖本地嵌入模式）。
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      # 敏感配置透传宿主机环境变量，缺失时直接报错，避免明文落盘
+      LLM_BASE_URL: ${LLM_BASE_URL:?需设置 LLM_BASE_URL}
+      LLM_API_KEY: ${LLM_API_KEY:?需设置 LLM_API_KEY}
+      LLM_MODEL: ${LLM_MODEL:-qwen3-max}
+      # 四期：网关配额闸门与限流回退（不配则用 settings 默认值）
+      LLM_FALLBACK_MODEL: ${LLM_FALLBACK_MODEL:-qwen-plus}
+      LLM_MAX_CONCURRENCY: ${LLM_MAX_CONCURRENCY:-2}
+      LLM_MIN_INTERVAL_SECONDS: ${LLM_MIN_INTERVAL_SECONDS:-1.0}
+      LLM_MAX_RETRIES: ${LLM_MAX_RETRIES:-2}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-v4}
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_COLLECTION: ${QDRANT_COLLECTION:-globex_products}
+      # 四期：存储走 SQLite（落在 app-data 卷）；DATABASE_URL=file 退回 JSON 文件存储
+      DATABASE_URL: ${DATABASE_URL:-sqlite+aiosqlite:////app/data/globex.db}
+      # 四期：Redis 缓存（embedding 缓存 + 语义缓存 + 幂等键）；置空则全部缓存关闭
+      REDIS_URL: ${REDIS_URL-redis://redis:6379/0}
+      SEMANTIC_CACHE_THRESHOLD: ${SEMANTIC_CACHE_THRESHOLD:-0.95}
+      # 跑评测回归时设为 0：开着缓存会把旧回复直接返回，评分变成评缓存
+      SEMANTIC_CACHE_ENABLED: ${SEMANTIC_CACHE_ENABLED:-1}
+      # 四期：队列削峰（需 worker 服务一起跑）；QUEUE_ENABLED=0 则意图在 API 进程内直跑
+      QUEUE_ENABLED: ${QUEUE_ENABLED:-1}
+      QUEUE_WAIT_SECONDS: ${QUEUE_WAIT_SECONDS:-300}
+      DATA_DIR: /app/data
+      CORS_ORIGINS: http://localhost:5173
+    volumes:
+      - app-data:/app/data
+    depends_on:
+      qdrant:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # 意图消费进程：同镜像不同命令。削峰的实质是 WORKER_CONCURRENCY 限住同时在跑的轮数。
+  worker:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    command: ["python", "-m", "app.worker"]
+    environment:
+      LLM_BASE_URL: ${LLM_BASE_URL:?需设置 LLM_BASE_URL}
+      LLM_API_KEY: ${LLM_API_KEY:?需设置 LLM_API_KEY}
+      LLM_MODEL: ${LLM_MODEL:-qwen3-max}
+      LLM_FALLBACK_MODEL: ${LLM_FALLBACK_MODEL:-qwen-plus}
+      LLM_MAX_CONCURRENCY: ${LLM_MAX_CONCURRENCY:-2}
+      LLM_MIN_INTERVAL_SECONDS: ${LLM_MIN_INTERVAL_SECONDS:-1.0}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-v4}
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_COLLECTION: ${QDRANT_COLLECTION:-globex_products}
+      # 与 app 共一个 SQLite 文件（共享 app-data 卷）；WAL 已开，缓解双进程写锁竞争
+      DATABASE_URL: ${DATABASE_URL:-sqlite+aiosqlite:////app/data/globex.db}
+      REDIS_URL: ${REDIS_URL-redis://redis:6379/0}
+      QUEUE_ENABLED: "1"
+      SEMANTIC_CACHE_ENABLED: ${SEMANTIC_CACHE_ENABLED:-1}
+      WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-2}
+      DATA_DIR: /app/data
+    volumes:
+      - app-data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:v1.12.4
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant-data:/qdrant/storage
+    restart: unless-stopped
+
+  frontend:
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_BASE: http://localhost:8000
+    volumes:
+      - ../frontend:/app
+      - frontend-modules:/app/node_modules
+    depends_on:
+      app:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  app-data:
+  qdrant-data:
+  redis-data:
+  frontend-modules:
