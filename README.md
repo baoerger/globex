@@ -1,5 +1,18 @@
 # Globex - 跨境电商 Agent（AgentScope 2.0）
 
+> A commerce-agent prototype with retrieval, order tools, persistent memory, and observable execution.
+
+买家用自然语言提出需求，系统完成商品检索、到手价计算和订单操作，并通过事件时间线展示处理过程。项目的工程重点包括检索降级、会话隔离、偏好记忆、工具调用约束，以及 API 与 worker 之间的异步通信。商品目录当前采用内存仓储和种子数据，订单为项目内的业务流程演示。
+
+| 关注点 | 实现入口 |
+| --- | --- |
+| 商品检索与过滤 | [检索用例](app/application/usecases/catalog_search.py)：向量召回、重排及降级策略 |
+| 领域与系统装配 | [领域模型](app/domain/)与[装配容器](app/composition.py)：业务逻辑与基础设施分层 |
+| API 与事件流 | [接口层](app/presentation/)和[前端](frontend/)：对话、商品卡与处理事件 |
+| 运行约束与评测 | [测试](tests/)、[评测用例](eval/)和[实现对齐清单](docs/教程实现对齐清单.md) |
+
+设计取舍和阶段性记录见[设计演进文档](docs/设计演进记录.md)；待实现能力在对齐清单中单独列出。
+
 基于 AgentScope 2.0 的跨境电商超级搜索框 Agent 系统，DDD 洋葱架构落地：
 
 - **MainAgent**（CommerceConcierge）：超级框总调度，**持有全部业务工具可直接单干**；
